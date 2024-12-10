@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import BookingView
+from .views import BookingView,create_order
 
 
 urlpatterns = [
@@ -12,6 +12,10 @@ urlpatterns = [
   path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
   path('api/bookings/', BookingView.as_view(), name='booking'),
+
+
+  path("api/payments/create-order/", create_order, name="create_order"),
+
 ]
 
 
