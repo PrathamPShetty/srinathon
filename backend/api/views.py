@@ -16,6 +16,10 @@ class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+class RegisterViewService(generics.CreateAPIView):
+    queryset = Service.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterServiceSerializer
 
 # Profile APIs
 @api_view(['GET'])
