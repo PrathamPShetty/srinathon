@@ -16,8 +16,19 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
+from .serializers import ServiceSerializer
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+
+class ServiceListView(APIView):
+    def get(self, request, *args, **kwargs):
+        # Fetch all services
+        services = Service.objects.all()
+        # Serialize the data
+        serializer = ServiceSerializer(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 class BookingView(APIView):
     def post(self, request, *args, **kwargs):
@@ -48,7 +59,6 @@ class BookingView(APIView):
                 {"errors": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
 
 
 
