@@ -1,20 +1,35 @@
 
 from django.db import models
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
-class Customer(models.Model):
-    first_name = models.CharField(max_length=50,null=True)
-    last_name = models.CharField(max_length=50,null=True)
-    email = models.EmailField(unique=True,null=True)
+class CustomUser(AbstractUser):
+    first_name = models.CharField(max_length=50, null=True)
+    last_name = models.CharField(max_length=50, null=True)
+    email = models.EmailField(unique=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Override groups and user_permissions with unique related_name
+    groups = models.ManyToManyField(
+        Group,
+        related_name="customuser_set",  # Avoid conflict
+        blank=True,
+        help_text="The groups this user belongs to.",
+        verbose_name="groups",
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name="customuser_set",  # Avoid conflict
+        blank=True,
+        help_text="Specific permissions for this user.",
+        verbose_name="user permissions",
+    )
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-from django.db import models
 
 class Service(models.Model):
     name = models.CharField(max_length=255, help_text="Name of the service")
@@ -61,3 +76,5 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.service} on {self.date} at {self.time}"
+
+
