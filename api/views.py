@@ -16,7 +16,9 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
-from .serializers import ServiceSerializer
+from .serializers import ServiceSerializer, UserSerializer
+from .models import Service 
+from django.contrib.auth.models import User
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -28,16 +30,20 @@ class ServiceListView(APIView):
         serializer = ServiceSerializer(services, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+class UserListView(APIView):
+    def get(self, request, *args, **kwargs):
+        users = User.objects.filter(is_staff=True) 
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class BookingView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = BookingSerializer(data=request.data)
         if serializer.is_valid():
-            # Save the booking and get the instance
+        
             booking = serializer.save()
 
-            # Fetch the service price
+            
             service_price = booking.service.price
 
             # Send a success email
