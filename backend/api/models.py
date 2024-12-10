@@ -2,13 +2,21 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
+
+
+def get_default_user():
+    return CustomUser.objects.first()
+def get_default_service():
+    return Service.objects.first()
+
+    
 class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
+    password = models.CharField(max_length=255, default='123',help_text="Password")
     email = models.EmailField(unique=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -31,8 +39,11 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+from django.contrib.auth.hashers import make_password
+
 class Service(models.Model):
     name = models.CharField(max_length=255, help_text="Name of the service")
+    password = models.CharField(max_length=255, default='123',help_text="Password")
     worker = models.CharField(max_length=255, help_text="Name of the worker providing the service")
     address = models.TextField(help_text="Address where the service is provided")
     email = models.EmailField(help_text="Contact email for the service")
@@ -43,6 +54,10 @@ class Service(models.Model):
     def __str__(self):
         return f"{self.name} by {self.worker}"
 
+    def set_password(self, raw_password):
+        """Hash the password before saving it"""
+        self.password = make_password(raw_password)
+
 from django.db import models
 
 class Booking(models.Model):
@@ -50,14 +65,18 @@ class Booking(models.Model):
         ('cleaning', 'Cleaning'),
         ('consultation', 'Consultation'),
         ('repair', 'Repair'),
-        # Add more services as needed
     ]
-    
-    service = models.CharField(
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=get_default_user)
+    service = models.ForeignKey(
+        Service,
+       on_delete=models.CASCADE, default=get_default_service
+    )
+    additional_service = models.CharField(
         max_length=50,
         choices=SERVICE_CHOICES,
         default='consultation',
-        help_text="Type of service being booked."
+        help_text="Type of additional service being booked."
     )
     call = models.CharField(
         max_length=100,
@@ -75,6 +94,4 @@ class Booking(models.Model):
     )
 
     def __str__(self):
-        return f"{self.service} on {self.date} at {self.time}"
-
-
+        return f"{self.service} booking by {self.user} on {self.date} at {self.time}"
