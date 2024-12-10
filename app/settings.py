@@ -136,11 +136,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 
-SMTP_SERVER = 'smtp.gmail.com'  
-SMTP_PORT = 587 
-SMTP_USER = 'prathampshetty99sai@gmail.com'  
-SMTP_PASSWORD = 'dlwofqozvkvwmwyi'
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Replace with your SMTP server
+EMAIL_PORT = 587  # Use 465 for SSL or 587 for TLS
+EMAIL_USE_TLS = True
+SMTP_USER = 'prathampshetty99sai@gmail.com'  
+SMTP_PASSWORD = 'dlwo fqoz vkvw mwyi'
 
 
 REST_FRAMEWORK = {
