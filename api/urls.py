@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import BookingView,create_order, ServiceListView, UserListView
+from .views import BookingView,create_order, ServiceListView, UserListView,OrderView
 
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
   path('users/', UserListView.as_view(), name='user-list'),
 
   path('bookings/', BookingView.as_view(), name='booking'),
+  path('orders/', OrderView.as_view(), name='order'),
 
 
   path("payments/create-order/", create_order, name="create_order"),

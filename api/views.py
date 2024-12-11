@@ -16,9 +16,12 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest
-from .serializers import ServiceSerializer, UserSerializer
+from .serializers import ServiceSerializer, UserSerializer, OrderSerializer
 from .models import Service 
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
+# from django.contrib.gis.geos import Point
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
@@ -36,6 +39,13 @@ class UserListView(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class OrderView(APIView):
+    def get(self, request, *args, **kwargs):
+        users = Booking.objects.all() 
+        serializer = OrderSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class BookingView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = BookingSerializer(data=request.data)
@@ -47,24 +57,45 @@ class BookingView(APIView):
             service_price = booking.service.price
 
             # Send a success email
-            # send_success_email("prathampshetty99sai@gmail.com", booking)
+            send_success_email("prathampshetty99sai@gmail.com", booking)
 
             # Include the booking ID and service price in the response
             return Response(
                 {
                     "message": "Booking successful!",
                     "booking_id": booking.id,
-                    "service_price": service_price,
+                    "service_price":int( service_price ),
                 },
                 status=status.HTTP_201_CREATED,
             )
         else:
+            print(request.data)
             # Send a failure email if the request is invalid
-            # send_failure_email(request.user.email)
+            send_failure_email("prathampshetty99sai@gmail.com")
             return Response(
                 {"errors": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+        
+
+
+
+class BookingSerializer(serializers.ModelSerializer):
+    latitude = serializers.FloatField(write_only=True)
+    longitude = serializers.FloatField(write_only=True)
+
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+    def create(self, validated_data):
+        latitude = validated_data.pop('latitude')
+        longitude = validated_data.pop('longitude')
+        validated_data['location'] = Point(longitude, latitude)
+        return super().create(validated_data)
+
 
 
 
@@ -104,3 +135,42 @@ def create_order(request):
         raise APIException("Service not found")
     except Exception as e:
         raise APIException(str(e))
+
+
+
+
+# from django.contrib.gis.db.models.functions import Distance
+# from django.contrib.gis.geos import Point
+# from django.shortcuts import get_list_or_404
+
+# def nearest_bookings(request):
+#     user_latitude = float(request.query_params.get('latitude'))
+#     user_longitude = float(request.query_params.get('longitude'))
+#     user_location = Point(user_longitude, user_latitude, srid=4326)
+
+#     # Get bookings ordered by distance
+#     bookings = Booking.objects.annotate(
+#         distance=Distance('location', user_location)
+#     ).order_by('distance')
+
+#     serializer = BookingSerializer(bookings, many=True)
+#     return Response(serializer.data)
+
+
+# from django.contrib.gis.measure import D  # For distance units
+
+# def nearest_bookings_within_radius(request):
+#     user_latitude = float(request.query_params.get('latitude'))
+#     user_longitude = float(request.query_params.get('longitude'))
+#     user_location = Point(user_longitude, user_latitude, srid=4326)
+
+#     radius = 10  
+#     bookings = Booking.objects.filter(
+#         location__distance_lt=(user_location, D(km=radius))
+#     ).annotate(
+#         distance=Distance('location', user_location)
+#     ).order_by('distance')
+
+#     serializer = BookingSerializer(bookings, many=True)
+#     return Response(serializer.data)
+
